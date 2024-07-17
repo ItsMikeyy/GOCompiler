@@ -1,3 +1,3 @@
-module github.com/ItsMikeyy/token
+module mscript/token
 
 go 1.22.5
