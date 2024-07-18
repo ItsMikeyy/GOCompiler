@@ -2,10 +2,9 @@ package main
 
 import (
 	"fmt"
+	"mscript/repl"
 	"os"
 	"os/user"
-
-	"github.com/ItsMikeyy/repl"
 )
 
 func main() {

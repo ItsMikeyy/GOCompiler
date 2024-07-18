@@ -1,5 +1,6 @@
 package token
 
+//All TokenTypes
 const (
 	ILLEGAL   = "ILLEGAL"
 	EOF       = ""
@@ -30,6 +31,7 @@ const (
 	RETURN    = "RETURN"
 )
 
+//Keywords mapped to TokenTypes
 var keywords = map[string]TokenType{
 	"fn":     FUNCTION,
 	"let":    LET,
@@ -40,13 +42,18 @@ var keywords = map[string]TokenType{
 	"return": RETURN,
 }
 
+//Creating new type TokenType set to a string
 type TokenType string
 
+//Creating new type Token which is a struct that has a type: TokenType(string)
+//and literal: string
 type Token struct {
 	Type    TokenType
 	Literal string
 }
 
+//Used for debugging
+//returns TokenType after passing in an identifier
 func LookupIdent(ident string) TokenType {
 	if tok, ok := keywords[ident]; ok {
 		return tok
