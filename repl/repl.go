@@ -10,6 +10,7 @@ import (
 
 const PROMPT = ">> "
 
+// Reads user input and outputs tokens
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
 	for {
