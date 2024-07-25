@@ -1,11 +1,13 @@
 package ast
 
 import (
+	"bytes"
 	"mscript/token"
 )
 
 type Node interface {
 	TokenLiteral() string //Used for debugging
+	String() string
 }
 
 type Statement interface {
@@ -18,24 +20,60 @@ type Expression interface {
 	expressionNode()
 }
 
+// Let statements have the token 'let', The identifer (name) and the expression (value)
+// let <identifier> = <expression>
 type LetStatement struct {
 	Token token.Token //Let token
 	Name  *Identifier
 	Value Expression
 }
 
+// return <expression>
 type ReturnStatement struct {
 	Token       token.Token //Return token
 	ReturnValue Expression
 }
 
+type ExpressionStatement struct {
+	Token      token.Token //First token of expression
+	Expression Expression
+}
+
+type IntegerLiteral struct {
+	Token token.Token
+	Value int64
+}
+
+type Program struct {
+	Statements []Statement
+}
+
+// Needed to satisfy the interface
 func (ls *LetStatement) statementNode() {}
+
+// Return the liteal of the let statement node
 func (ls *LetStatement) TokenLiteral() string {
 	return ls.Token.Literal
 }
 
+// Generating let statement string
+func (ls *LetStatement) String() string {
+	var out bytes.Buffer
+
+	out.WriteString(ls.TokenLiteral() + " ")
+	out.WriteString(ls.Name.String())
+	out.WriteString(" = ")
+
+	if ls.Value != nil {
+		out.WriteString(ls.Value.String())
+	}
+	out.WriteString(";")
+	return out.String()
+}
+
+// Keeps the ident token and the value of the identifer (name)
 type Identifier struct {
-	Token token.Token
+	Token token.Token //token.IDENT
 	Value string
 }
 
@@ -44,8 +82,9 @@ func (i *Identifier) TokenLiteral() string {
 	return i.Token.Literal
 }
 
-type Program struct {
-	Statements []Statement
+// Return identifer name
+func (i *Identifier) String() string {
+	return i.Value
 }
 
 func (p *Program) TokenLiteral() string {
@@ -61,4 +100,52 @@ func (rs *ReturnStatement) statementNode() {}
 
 func (rs *ReturnStatement) TokenLiteral() string {
 	return rs.Token.Literal
+}
+
+// Generating return statement string
+func (rs *ReturnStatement) String() string {
+	var out bytes.Buffer
+
+	out.WriteString(rs.TokenLiteral() + " ")
+
+	if rs.ReturnValue != nil {
+		out.WriteString(rs.ReturnValue.String())
+	}
+
+	out.WriteString(";")
+
+	return out.String()
+}
+
+func (es *ExpressionStatement) statementNode() {}
+func (es *ExpressionStatement) TokenLiteral() string {
+	return es.Token.Literal
+}
+
+// Generating expression statement string
+func (es *ExpressionStatement) String() string {
+	if es.Expression != nil {
+		return es.Expression.String()
+	}
+	return ""
+}
+
+func (il *IntegerLiteral) expressionNode() {}
+func (il *IntegerLiteral) TokenLiteral() string {
+	return il.Token.Literal
+}
+func (il *IntegerLiteral) String() string {
+	return il.Token.Literal
+}
+
+// Converts Program object into string
+func (p *Program) String() string {
+	//Used for building strings
+	var out bytes.Buffer
+
+	for _, s := range p.Statements {
+		out.WriteString(s.String())
+	}
+
+	return out.String()
 }
