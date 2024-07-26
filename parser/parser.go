@@ -48,6 +48,9 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
 	//Add parse integer for INT
 	p.registerPrefix(token.INT, p.parseIntegerLiteral)
+	//Add parse prefix for BANG and MINUS
+	p.registerPrefix(token.BANG, p.parsePrefixExpression)
+	p.registerPrefix(token.MINUS, p.parsePrefixExpression)
 
 	// Read two tokens, so curToken and peekToken are both set
 	p.nextToken()
@@ -166,8 +169,10 @@ func (p *Parser) ParseExpressionStatement() *ast.ExpressionStatement {
 func (p *Parser) parseExpression(precednce int) ast.Expression {
 	//Get prefix function for cur token
 	prefix := p.prefixParseFns[p.curToken.Type]
-	//None exist return nil
+
+	//No function exists add error message and return nil
 	if prefix == nil {
+		p.noPrefixParseFnError(p.curToken.Type)
 		return nil
 	}
 
@@ -191,6 +196,22 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 	return lit
 }
 
+// create prefix expression and call parseExpression
+func (p *Parser) parsePrefixExpression() ast.Expression {
+	//create PrefixExpression
+	expression := &ast.PrefixExpression{
+		Token:    p.curToken,
+		Operator: p.curToken.Literal,
+	}
+	//Advance
+	p.nextToken()
+
+	//Handle prefix parsing
+	expression.Right = p.parseExpression(PREFIX)
+
+	return expression
+}
+
 // Helper for adding a function to to prefix map
 func (p *Parser) registerPrefix(tokenType token.TokenType, fn prefixParseFn) {
 	p.prefixParseFns[tokenType] = fn
@@ -199,6 +220,12 @@ func (p *Parser) registerPrefix(tokenType token.TokenType, fn prefixParseFn) {
 // Helper for adding a function to to infix map
 func (p *Parser) registerInfix(tokenType token.TokenType, fn infixParseFn) {
 	p.infixParseFns[tokenType] = fn
+}
+
+// Add error for unknown prefix function
+func (p *Parser) noPrefixParseFnError(t token.TokenType) {
+	msg := fmt.Sprintf("no prefix parse function for %s", t)
+	p.errors = append(p.errors, msg)
 }
 
 // Check if current token is equal to expected
