@@ -308,16 +308,16 @@ func (p *Parser) parseIfExpression() ast.Expression {
 	//parse inner if code
 	expression.Consequence = p.parseBlockStatement()
 
+	//If there is else block
 	if p.peekTokenIs(token.ELSE) {
 		p.nextToken()
 		if !p.expectPeek(token.LBRACE) {
 			return nil
 		}
 
+		//Prase inner else statements
 		expression.Alternative = p.parseBlockStatement()
 	}
-
-	return expression
 
 	return expression
 }
