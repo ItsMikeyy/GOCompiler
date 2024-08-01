@@ -121,18 +121,9 @@ func (p *Parser) parseStatement() ast.Statement {
 	case token.LET:
 		return p.parseLetStatement()
 	case token.RETURN:
-		return p.ParseReturnStatement()
+		return p.parseReturnStatement()
 	default:
-		return p.ParseExpressionStatement()
-	}
-}
-
-func (p *Parser) parseStatements() ast.Statement {
-	switch p.curToken.Type {
-	case token.LET:
-		return p.parseLetStatement()
-	default:
-		return nil
+		return p.parseExpressionStatement()
 	}
 }
 
@@ -153,9 +144,11 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 	if !p.expectPeek(token.ASSIGN) {
 		return nil
 	}
+	p.nextToken()
 
-	//While the current token is not a semicolon advance the tokens
-	for !p.curTokenIs(token.SEMICOLON) {
+	stmt.Value = p.parseExpression(LOWEST)
+
+	if p.peekTokenIs(token.SEMICOLON) {
 		p.nextToken()
 	}
 
@@ -164,13 +157,14 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 
 // Parses ReturnStatement
 // Returns ReturnStatement
-func (p *Parser) ParseReturnStatement() *ast.ReturnStatement {
+func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	//Creating ReturnStatement
 	stmt := &ast.ReturnStatement{Token: p.curToken}
 	p.nextToken()
 
-	//Loop through expression
-	for !p.curTokenIs(token.SEMICOLON) {
+	stmt.ReturnValue = p.parseExpression(LOWEST)
+
+	if p.peekTokenIs(token.SEMICOLON) {
 		p.nextToken()
 	}
 
@@ -178,7 +172,7 @@ func (p *Parser) ParseReturnStatement() *ast.ReturnStatement {
 }
 
 // Parse Expression Statement
-func (p *Parser) ParseExpressionStatement() *ast.ExpressionStatement {
+func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 	//Create Expression Statement
 	stmt := &ast.ExpressionStatement{Token: p.curToken}
 
