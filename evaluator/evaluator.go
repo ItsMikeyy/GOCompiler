@@ -77,12 +77,11 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		if isError(function) {
 			return function
 		}
-
 		args := evalExpressions(node.Arguments, env)
 		if len(args) == 1 && isError(args[0]) {
+
 			return args[0]
 		}
-
 		return applyFunction(function, args)
 	}
 
@@ -240,18 +239,15 @@ func applyFunction(fn object.Object, args []object.Object) object.Object {
 	if !ok {
 		return newError("not a function: %s", fn.Type())
 	}
-
-	extendedEnv := extendedFunctionEnv(function, args)
+	extendedEnv := extendFunctionEnv(function, args)
 	evaluated := Eval(function.Body, extendedEnv)
 	return unwrapReturnValue(evaluated)
 }
-
-func extendedFunctionEnv(fn *object.Function, args []object.Object) *object.Environment {
+func extendFunctionEnv(fn *object.Function, args []object.Object) *object.Environment {
 	env := object.NewEnclosedEnvironment(fn.Env)
 	for paramIdx, param := range fn.Parameters {
 		env.Set(param.Value, args[paramIdx])
 	}
-
 	return env
 }
 
